@@ -27,8 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `validate_triggers_and_keep()` - Configuration normalization
   - Reduces code duplication between `SummarizationProcessor` and `SlidingWindowProcessor`
 
+- `ModelType` type alias (`str | Model | KnownModelName`) exported from the package for convenience.
+
 ### Changed
 
+- **Lightweight dependency**: Replaced `pydantic-ai` with `pydantic-ai-slim` to avoid pulling in unnecessary model-specific SDKs (openai, anthropic, etc.). ([#4](https://github.com/vstorm-co/summarization-pydantic-ai/issues/4))
+- **Custom model support**: `SummarizationProcessor.model`, `ContextManagerMiddleware.summarization_model`, and factory functions now accept `str | Model | KnownModelName` — enabling custom providers like Azure OpenAI. ([#3](https://github.com/vstorm-co/summarization-pydantic-ai/issues/3))
 - **Code refactoring**: Extracted common logic from `processor.py` and `sliding_window.py` into shared `_cutoff.py` module
 - **README**: Updated with ContextManagerMiddleware, hybrid extra, and new features
 
@@ -36,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `hybrid` extra: `pydantic-ai-middleware>=0.2.0` (optional)
 - `pydantic-ai-middleware` added to dev dependencies
+- Replaced `pydantic-ai>=0.1.0` with `pydantic-ai-slim>=0.1.0`
 
 ## [0.0.2] - 2025-01-22
 

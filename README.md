@@ -199,6 +199,28 @@ processor = create_summarization_processor(
 )
 ```
 
+### Custom Model (e.g., Azure OpenAI)
+
+```python
+from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai.providers.openai import OpenAIProvider
+from pydantic_ai_summarization import create_summarization_processor
+
+azure_model = OpenAIModel(
+    "gpt-4o",
+    provider=OpenAIProvider(
+        base_url="https://my-resource.openai.azure.com/openai/deployments/gpt-4o",
+        api_key="your-azure-api-key",
+    ),
+)
+
+processor = create_summarization_processor(
+    model=azure_model,
+    trigger=("tokens", 100000),
+    keep=("messages", 20),
+)
+```
+
 ### Custom Summary Prompt
 
 ```python
@@ -224,7 +246,8 @@ processor = create_summarization_processor(
 | **Custom Prompts** | Control how summaries are generated |
 | **Token Tracking** | Real-time usage monitoring with callbacks |
 | **Tool Truncation** | Automatic truncation of large tool outputs |
-| **Zero Dependencies** | Only requires pydantic-ai |
+| **Custom Models** | Use any pydantic-ai Model (Azure, custom providers) |
+| **Lightweight** | Only requires pydantic-ai-slim (no extra model SDKs) |
 
 ## Related Projects
 

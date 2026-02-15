@@ -46,11 +46,11 @@ from pydantic_ai.messages import (
 
 try:
     from pydantic_ai_middleware import AgentMiddleware
-except ImportError:
+except ImportError as err:
     raise ImportError(  # pragma: no cover
         "ContextManagerMiddleware requires the 'hybrid' extra: "
         "pip install summarization-pydantic-ai[hybrid]"
-    )
+    ) from err
 
 from pydantic_ai_summarization._cutoff import (
     determine_cutoff_index,
@@ -61,7 +61,7 @@ from pydantic_ai_summarization.processor import (
     count_tokens_approximately,
     format_messages_for_summary,
 )
-from pydantic_ai_summarization.types import ContextSize, TokenCounter
+from pydantic_ai_summarization.types import ContextSize, ModelType, TokenCounter
 
 UsageCallback = Callable[[float, int, int], Any]
 """Callback type for usage updates: ``(percentage, current_tokens, max_tokens)``.
@@ -134,8 +134,11 @@ class ContextManagerMiddleware(AgentMiddleware[Any]):
     keep: ContextSize = ("messages", 20)
     """How much context to retain after compression."""
 
-    summarization_model: str = "openai:gpt-4.1-mini"
-    """Model used for generating summaries."""
+    summarization_model: ModelType = "openai:gpt-4.1-mini"
+    """Model used for generating summaries.
+
+    Accepts a string model name, a pydantic-ai Model instance, or a KnownModelName literal.
+    """
 
     token_counter: TokenCounter = field(default=count_tokens_approximately)
     """Function to count tokens in messages."""
@@ -315,7 +318,7 @@ def create_context_manager_middleware(
     max_tokens: int = 200_000,
     compress_threshold: float = 0.9,
     keep: ContextSize = ("messages", 20),
-    summarization_model: str = "openai:gpt-4.1-mini",
+    summarization_model: ModelType = "openai:gpt-4.1-mini",
     token_counter: TokenCounter | None = None,
     summary_prompt: str | None = None,
     max_tool_output_tokens: int | None = None,

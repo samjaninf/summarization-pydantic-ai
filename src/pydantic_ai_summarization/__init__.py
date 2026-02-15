@@ -25,6 +25,7 @@ Example:
     ```
 """
 
+from contextlib import suppress
 from importlib.metadata import PackageNotFoundError, version
 
 from pydantic_ai_summarization.processor import (
@@ -43,17 +44,16 @@ from pydantic_ai_summarization.types import (
     ContextMessages,
     ContextSize,
     ContextTokens,
+    ModelType,
     TokenCounter,
 )
 
-try:
+with suppress(ImportError):
     from pydantic_ai_summarization.middleware import (
         ContextManagerMiddleware,
         UsageCallback,
         create_context_manager_middleware,
     )
-except ImportError:
-    pass
 
 try:
     __version__ = version("summarization-pydantic-ai")
@@ -79,6 +79,7 @@ __all__ = [
     "ContextFraction",
     "ContextTokens",
     "ContextMessages",
+    "ModelType",
     "TokenCounter",
     # Constants
     "DEFAULT_SUMMARY_PROMPT",

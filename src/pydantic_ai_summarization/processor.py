@@ -20,14 +20,26 @@ from pydantic_ai.messages import (
 
 from pydantic_ai_summarization._cutoff import (
     determine_cutoff_index as _determine_cutoff,
+)
+from pydantic_ai_summarization._cutoff import (
     find_safe_cutoff as _find_safe,
+)
+from pydantic_ai_summarization._cutoff import (
     find_token_based_cutoff as _find_token,
+)
+from pydantic_ai_summarization._cutoff import (
     is_safe_cutoff_point as _is_safe,
+)
+from pydantic_ai_summarization._cutoff import (
     should_trigger as _should_trigger,
+)
+from pydantic_ai_summarization._cutoff import (
     validate_context_size as _validate_ctx,
+)
+from pydantic_ai_summarization._cutoff import (
     validate_triggers_and_keep as _validate_trig_keep,
 )
-from pydantic_ai_summarization.types import ContextSize, TokenCounter
+from pydantic_ai_summarization.types import ContextSize, ModelType, TokenCounter
 
 if TYPE_CHECKING:
     pass
@@ -224,8 +236,13 @@ class SummarizationProcessor:
         ```
     """
 
-    model: str
-    """Model to use for generating summaries."""
+    model: ModelType
+    """Model to use for generating summaries.
+
+    Accepts a string model name (e.g., ``"openai:gpt-4.1"``), a pydantic-ai
+    :class:`~pydantic_ai.models.Model` instance, or a
+    :data:`~pydantic_ai.models.KnownModelName` literal.
+    """
 
     trigger: ContextSize | list[ContextSize] | None = None
     """Threshold(s) that trigger summarization.
@@ -371,7 +388,7 @@ class SummarizationProcessor:
 
 
 def create_summarization_processor(
-    model: str = "openai:gpt-4.1",
+    model: ModelType = "openai:gpt-4.1",
     trigger: ContextSize | list[ContextSize] | None = ("tokens", _DEFAULT_TRIGGER_TOKENS),
     keep: ContextSize = ("messages", _DEFAULT_MESSAGES_TO_KEEP),
     max_input_tokens: int | None = None,
@@ -384,7 +401,8 @@ def create_summarization_processor(
     instances with sensible defaults.
 
     Args:
-        model: Model to use for generating summaries. Defaults to "openai:gpt-4.1".
+        model: Model to use for generating summaries. Accepts a string name,
+            a Model instance, or a KnownModelName. Defaults to "openai:gpt-4.1".
         trigger: When to trigger summarization. Can be:
             - ("messages", N) - trigger when N+ messages
             - ("tokens", N) - trigger when N+ tokens

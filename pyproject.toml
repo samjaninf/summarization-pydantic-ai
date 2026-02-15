@@ -21,7 +21,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "pydantic-ai>=0.1.0",
+    "pydantic-ai-slim>=0.1.0",
 ]
 
 [project.optional-dependencies]
@@ -111,7 +111,7 @@ exclude_lines = [
     "@abstractmethod",
     "raise NotImplementedError",
     "if __name__ == '__main__':",
-    "except ImportError:",
+    "except ImportError",
     "pass",
     "\\.\\.\\.",
 ]

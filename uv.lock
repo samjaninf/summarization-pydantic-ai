@@ -3719,10 +3719,10 @@ wheels = [
 
 [[package]]
 name = "summarization-pydantic-ai"
-version = "0.0.2"
+version = "0.0.3"
 source = { editable = "." }
 dependencies = [
-    { name = "pydantic-ai" },
+    { name = "pydantic-ai-slim" },
 ]
 
 [package.optional-dependencies]
@@ -3757,9 +3757,9 @@ requires-dist = [
     { name = "mkdocstrings", extras = ["python"], marker = "extra == 'dev'", specifier = ">=0.27.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0.0" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.0.0" },
-    { name = "pydantic-ai", specifier = ">=0.1.0" },
     { name = "pydantic-ai-middleware", marker = "extra == 'dev'", specifier = ">=0.2.0" },
     { name = "pydantic-ai-middleware", marker = "extra == 'hybrid'", specifier = ">=0.2.0" },
+    { name = "pydantic-ai-slim", specifier = ">=0.1.0" },
     { name = "pyright", marker = "extra == 'dev'", specifier = ">=1.1.400" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.0.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23.0" },
