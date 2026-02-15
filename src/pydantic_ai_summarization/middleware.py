@@ -102,7 +102,7 @@ def _truncate_tool_output(text: str, head_lines: int, tail_lines: int) -> str:
 
 
 @dataclass
-class ContextManagerMiddleware(AgentMiddleware[Any]):
+class ContextManagerMiddleware(AgentMiddleware[Any]):  # type: ignore[misc]
     """Real-time context management middleware.
 
     Combines token tracking, auto-compression, and optional tool output
