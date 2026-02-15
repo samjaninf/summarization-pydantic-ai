@@ -47,6 +47,15 @@ from pydantic_ai_summarization.types import (
 )
 
 try:
+    from pydantic_ai_summarization.middleware import (
+        ContextManagerMiddleware,
+        UsageCallback,
+        create_context_manager_middleware,
+    )
+except ImportError:
+    pass
+
+try:
     __version__ = version("summarization-pydantic-ai")
 except PackageNotFoundError:  # pragma: no cover
     __version__ = "0.0.0"
@@ -58,6 +67,10 @@ __all__ = [
     # Main exports - Sliding Window
     "SlidingWindowProcessor",
     "create_sliding_window_processor",
+    # Main exports - Context Manager Middleware (requires [hybrid] extra)
+    "ContextManagerMiddleware",
+    "UsageCallback",
+    "create_context_manager_middleware",
     # Utilities
     "count_tokens_approximately",
     "format_messages_for_summary",
