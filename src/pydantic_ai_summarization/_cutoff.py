@@ -47,9 +47,7 @@ def validate_context_size(context: ContextSize, parameter_name: str) -> ContextS
             )
     elif kind in {"tokens", "messages"}:
         if value <= 0:
-            raise ValueError(
-                f"{parameter_name} thresholds must be greater than 0, got {value}."
-            )
+            raise ValueError(f"{parameter_name} thresholds must be greater than 0, got {value}.")
     else:
         raise ValueError(f"Unsupported context size type {kind} for {parameter_name}.")
     return context

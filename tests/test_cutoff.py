@@ -40,10 +40,10 @@ def _make_messages(n: int) -> list[ModelMessage]:
 def _make_tool_pair(call_id: str) -> list[ModelMessage]:
     """Create a tool call + tool return pair."""
     return [
-        ModelResponse(parts=[ToolCallPart(tool_name="test", args="{}",
-                                          tool_call_id=call_id)]),
-        ModelRequest(parts=[ToolReturnPart(tool_name="test", content="result",
-                                           tool_call_id=call_id)]),
+        ModelResponse(parts=[ToolCallPart(tool_name="test", args="{}", tool_call_id=call_id)]),
+        ModelRequest(
+            parts=[ToolReturnPart(tool_name="test", content="result", tool_call_id=call_id)]
+        ),
     ]
 
 
@@ -112,20 +112,23 @@ class TestShouldTrigger:
         assert should_trigger([("tokens", 100)], _make_messages(2), 50) is False
 
     def test_fraction_trigger_met(self):
-        assert should_trigger(
-            [("fraction", 0.5)], _make_messages(2), 60000, max_input_tokens=100000
-        ) is True
+        assert (
+            should_trigger([("fraction", 0.5)], _make_messages(2), 60000, max_input_tokens=100000)
+            is True
+        )
 
     def test_fraction_trigger_not_met(self):
-        assert should_trigger(
-            [("fraction", 0.8)], _make_messages(2), 50000, max_input_tokens=100000
-        ) is False
+        assert (
+            should_trigger([("fraction", 0.8)], _make_messages(2), 50000, max_input_tokens=100000)
+            is False
+        )
 
     def test_fraction_trigger_no_max_tokens(self):
         # fraction trigger without max_input_tokens is never met
-        assert should_trigger(
-            [("fraction", 0.5)], _make_messages(2), 60000, max_input_tokens=None
-        ) is False
+        assert (
+            should_trigger([("fraction", 0.5)], _make_messages(2), 60000, max_input_tokens=None)
+            is False
+        )
 
     def test_multiple_triggers_first_met(self):
         msgs = _make_messages(10)
@@ -236,31 +239,27 @@ class TestDetermineCutoffIndex:
 
     def test_message_based(self):
         msgs = _make_messages(10)
-        cutoff = determine_cutoff_index(
-            msgs, ("messages", 4), count_tokens_approximately
-        )
+        cutoff = determine_cutoff_index(msgs, ("messages", 4), count_tokens_approximately)
         assert cutoff > 0
 
     def test_token_based(self):
         msgs = _make_messages(20)
-        cutoff = determine_cutoff_index(
-            msgs, ("tokens", 10), count_tokens_approximately
-        )
+        cutoff = determine_cutoff_index(msgs, ("tokens", 10), count_tokens_approximately)
         assert cutoff > 0
 
     def test_fraction_based(self):
         msgs = _make_messages(20)
         cutoff = determine_cutoff_index(
-            msgs, ("fraction", 0.1), count_tokens_approximately,
+            msgs,
+            ("fraction", 0.1),
+            count_tokens_approximately,
             max_input_tokens=100,
         )
         assert cutoff > 0
 
     def test_few_messages(self):
         msgs = _make_messages(3)
-        cutoff = determine_cutoff_index(
-            msgs, ("messages", 10), count_tokens_approximately
-        )
+        cutoff = determine_cutoff_index(msgs, ("messages", 10), count_tokens_approximately)
         assert cutoff == 0
 
 
@@ -273,9 +272,7 @@ class TestValidateTriggersAndKeep:
         assert keep == ("messages", 20)
 
     def test_single_trigger(self):
-        triggers, keep = validate_triggers_and_keep(
-            ("tokens", 100), ("messages", 10), None
-        )
+        triggers, keep = validate_triggers_and_keep(("tokens", 100), ("messages", 10), None)
         assert triggers == [("tokens", 100)]
 
     def test_list_triggers(self):

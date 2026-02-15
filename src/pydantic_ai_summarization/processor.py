@@ -278,7 +278,10 @@ class SummarizationProcessor:
     def _determine_cutoff_index(self, messages: list[ModelMessage]) -> int:
         """Choose cutoff index respecting retention configuration."""
         return _determine_cutoff(
-            messages, self.keep, self.token_counter, self.max_input_tokens,
+            messages,
+            self.keep,
+            self.token_counter,
+            self.max_input_tokens,
             _DEFAULT_MESSAGES_TO_KEEP,
         )
 

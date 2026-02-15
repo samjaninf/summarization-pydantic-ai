@@ -92,11 +92,13 @@ def _truncate_tool_output(text: str, head_lines: int, tail_lines: int) -> str:
     tail = lines[-tail_lines:]
     omitted = total_lines - head_lines - tail_lines
 
-    return "\n".join([
-        *head,
-        f"\n... ({omitted} lines omitted) ...\n",
-        *tail,
-    ])
+    return "\n".join(
+        [
+            *head,
+            f"\n... ({omitted} lines omitted) ...\n",
+            *tail,
+        ]
+    )
 
 
 @dataclass
@@ -159,9 +161,7 @@ class ContextManagerMiddleware(AgentMiddleware[Any]):
     on_usage_update: UsageCallback | None = None
     """Callback invoked with ``(percentage, current_tokens, max_tokens)``."""
 
-    _summarization_agent: Agent[None, str] | None = field(
-        default=None, init=False, repr=False
-    )
+    _summarization_agent: Agent[None, str] | None = field(default=None, init=False, repr=False)
     _compression_count: int = field(default=0, init=False, repr=False)
 
     def __post_init__(self) -> None:
@@ -172,9 +172,7 @@ class ContextManagerMiddleware(AgentMiddleware[Any]):
             )
         self.keep = validate_context_size(self.keep, "keep")
         if self.keep[0] == "fraction" and self.max_input_tokens is None:
-            raise ValueError(
-                "max_input_tokens is required when using fraction-based keep."
-            )
+            raise ValueError("max_input_tokens is required when using fraction-based keep.")
 
     # -- History processor protocol (pydantic-ai) --
 
@@ -268,9 +266,7 @@ class ContextManagerMiddleware(AgentMiddleware[Any]):
 
         summary_message = ModelRequest(  # pragma: no cover
             parts=[
-                SystemPromptPart(
-                    content=f"Summary of previous conversation:\n\n{summary}"
-                ),
+                SystemPromptPart(content=f"Summary of previous conversation:\n\n{summary}"),
             ]
         )
 
@@ -298,7 +294,7 @@ class ContextManagerMiddleware(AgentMiddleware[Any]):
         formatted = format_messages_for_summary(messages_to_summarize)
 
         if self.trim_tokens_to_summarize and len(formatted) > self.trim_tokens_to_summarize * 4:
-            formatted = formatted[-(self.trim_tokens_to_summarize * 4):]
+            formatted = formatted[-(self.trim_tokens_to_summarize * 4) :]
 
         prompt = self.summary_prompt.format(messages=formatted)
 

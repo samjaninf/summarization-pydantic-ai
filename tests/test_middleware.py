@@ -105,9 +105,7 @@ class TestContextManagerInit:
             ContextManagerMiddleware(keep=("fraction", 0.3))
 
     def test_fraction_keep_with_max_input_tokens(self):
-        m = ContextManagerMiddleware(
-            keep=("fraction", 0.3), max_input_tokens=200_000
-        )
+        m = ContextManagerMiddleware(keep=("fraction", 0.3), max_input_tokens=200_000)
         assert m.keep == ("fraction", 0.3)
         assert m.max_input_tokens == 200_000
 
