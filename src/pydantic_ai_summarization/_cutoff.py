@@ -38,7 +38,7 @@ async def async_count_tokens(token_counter: TokenCounter, messages: Sequence[Mod
     result = token_counter(messages)
     if inspect.isawaitable(result):
         return await result
-    return result  # type: ignore[return-value]
+    return result
 
 
 SEARCH_RANGE_FOR_TOOL_PAIRS: int = 5
