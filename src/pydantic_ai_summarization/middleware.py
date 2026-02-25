@@ -124,9 +124,7 @@ def resolve_max_tokens(model_name: str) -> int | None:
 
     try:
         snapshot = get_snapshot()
-        _provider, model = snapshot.find_provider_model(
-            model_ref, None, provider_id, None
-        )
+        _provider, model = snapshot.find_provider_model(model_ref, None, provider_id, None)
         if model.context_window and model.context_window > 0:
             return int(model.context_window)
     except Exception:
@@ -448,7 +446,7 @@ class ContextManagerMiddleware(AgentMiddleware[Any]):  # type: ignore[misc]
                 return
 
         if len(messages) > self._last_context_count:
-            new_msgs = messages[self._last_context_count:]
+            new_msgs = messages[self._last_context_count :]
             self._full_history.extend(new_msgs)
             self._last_context_count = len(messages)
             self._persist_history()
@@ -541,9 +539,7 @@ class ContextManagerMiddleware(AgentMiddleware[Any]):  # type: ignore[misc]
             result = await result
 
         if result and isinstance(result, str):
-            inject_msg = ModelRequest(
-                parts=[SystemPromptPart(content=result)]
-            )
+            inject_msg = ModelRequest(parts=[SystemPromptPart(content=result)])
             # Insert after summary (index 0), before preserved messages
             messages = [messages[0], inject_msg, *messages[1:]]
 

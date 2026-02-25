@@ -69,8 +69,7 @@ async def main() -> None:
     agent = Agent(
         MODEL,
         instructions=(
-            "You are a programming tutor. Keep responses short.\n\n"
-            + CRITICAL_INSTRUCTIONS
+            "You are a programming tutor. Keep responses short.\n\n" + CRITICAL_INSTRUCTIONS
         ),
         history_processors=[middleware],
     )
@@ -88,9 +87,9 @@ async def main() -> None:
     ]
 
     for i, prompt in enumerate(prompts, 1):
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"Turn {i}: {prompt}")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
 
         result = await wrapped.run(prompt, message_history=history)
         history = result.all_messages()
@@ -98,7 +97,7 @@ async def main() -> None:
         print(f"\n  Assistant: {result.output}")
 
     # --- Manual compaction with focus ---
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("MANUAL COMPACTION with focus")
     print("=" * 60)
 

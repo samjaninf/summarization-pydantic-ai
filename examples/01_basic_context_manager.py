@@ -53,9 +53,9 @@ async def main() -> None:
     ]
 
     for i, prompt in enumerate(prompts, 1):
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"Turn {i}: {prompt}")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
 
         compressions_before = middleware.compression_count
         result = await wrapped.run(prompt, message_history=history)
@@ -68,7 +68,7 @@ async def main() -> None:
         print(f"Messages in context: {len(history)}")
         print(f"Compressions so far: {middleware.compression_count}")
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("DONE")
     print(f"Total compressions: {middleware.compression_count}")
     print(f"Final messages in context: {len(history)}")

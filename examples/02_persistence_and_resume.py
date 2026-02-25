@@ -28,7 +28,9 @@ def on_usage(pct: float, current: int, maximum: int) -> None:
     print(f"  [{'█' * filled}{'░' * (20 - filled)}] {pct:.0%}")
 
 
-async def run_session(messages_path: str, history: list[ModelMessage], prompts: list[str]) -> list[ModelMessage]:
+async def run_session(
+    messages_path: str, history: list[ModelMessage], prompts: list[str]
+) -> list[ModelMessage]:
     """Run a series of prompts with persistence."""
     middleware = create_context_manager_middleware(
         max_tokens=MAX_TOKENS,
@@ -63,11 +65,15 @@ async def main() -> None:
         print("SESSION 1 — Starting fresh")
         print("=" * 60)
 
-        history = await run_session(messages_path, [], [
-            "What is Python?",
-            "What is Rust?",
-            "What is Go?",
-        ])
+        history = await run_session(
+            messages_path,
+            [],
+            [
+                "What is Python?",
+                "What is Rust?",
+                "What is Go?",
+            ],
+        )
 
         # Check what's on disk
         raw = Path(messages_path).read_bytes()
@@ -84,10 +90,14 @@ async def main() -> None:
         loaded = list(ModelMessagesTypeAdapter.validate_json(Path(messages_path).read_bytes()))
         print(f"Loaded {len(loaded)} messages from disk")
 
-        history = await run_session(messages_path, loaded, [
-            "What is JavaScript?",
-            "Now list ALL languages we discussed.",
-        ])
+        history = await run_session(
+            messages_path,
+            loaded,
+            [
+                "What is JavaScript?",
+                "Now list ALL languages we discussed.",
+            ],
+        )
 
         # Final state
         raw2 = Path(messages_path).read_bytes()

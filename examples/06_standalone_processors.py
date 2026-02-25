@@ -43,7 +43,7 @@ async def demo_summarization() -> None:
     processor = create_summarization_processor(
         model=MODEL,
         trigger=("messages", 8),  # trigger after 8 messages
-        keep=("messages", 2),     # keep last 2 after summarization
+        keep=("messages", 2),  # keep last 2 after summarization
     )
 
     agent = Agent(
@@ -71,7 +71,7 @@ async def demo_sliding_window() -> None:
 
     processor = create_sliding_window_processor(
         trigger=("messages", 8),  # trigger after 8 messages
-        keep=("messages", 4),     # keep last 4
+        keep=("messages", 4),  # keep last 4
     )
 
     agent = Agent(

@@ -24,9 +24,7 @@ from pydantic_ai.messages import (
 from pydantic_ai_summarization.types import ContextSize, TokenCounter
 
 
-async def async_count_tokens(
-    token_counter: TokenCounter, messages: Sequence[ModelMessage]
-) -> int:
+async def async_count_tokens(token_counter: TokenCounter, messages: Sequence[ModelMessage]) -> int:
     """Call a token counter, awaiting if it returns an awaitable.
 
     Args:
@@ -40,6 +38,7 @@ async def async_count_tokens(
     if inspect.isawaitable(result):
         return await result
     return result  # type: ignore[return-value]
+
 
 SEARCH_RANGE_FOR_TOOL_PAIRS: int = 5
 """Number of messages to search around cutoff point for tool call/response pairs."""
