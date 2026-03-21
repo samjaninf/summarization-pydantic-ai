@@ -201,7 +201,9 @@ class LimitWarnerProcessor:
 
     def _build_context_warning(self, context_tokens: int) -> _TriggeredWarning | None:
         """Build a context-window warning when current history is too large."""
-        if self.max_context_tokens is None or "context_window" not in self._warn_on:
+        if (  # pragma: no cover
+            self.max_context_tokens is None or "context_window" not in self._warn_on
+        ):
             return None
 
         usage = context_tokens / self.max_context_tokens
@@ -222,7 +224,7 @@ class LimitWarnerProcessor:
     @staticmethod
     def _format_warning_message(warnings: list[_TriggeredWarning]) -> str:
         """Format active warnings into a single generated system prompt."""
-        severity = _SEVERITY_CRITICAL
+        severity: Literal["URGENT", "CRITICAL"] = _SEVERITY_CRITICAL
         if all(warning.severity == _SEVERITY_URGENT for warning in warnings):
             severity = _SEVERITY_URGENT
 

@@ -279,3 +279,65 @@ class TestLimitWarnerProcessor:
         result = await processor(_make_ctx(), messages)
         assert calls == [3]
         assert len(_generated_warning_parts(result)) == 1
+
+    @pytest.mark.anyio
+    async def test_iteration_urgent_severity_above_critical_remaining(self):
+        """Test iteration warning is URGENT when remaining > critical_remaining_iterations."""
+        processor = LimitWarnerProcessor(
+            max_iterations=10,
+            critical_remaining_iterations=2,
+        )
+        # 7/10 used → 3 remaining > 2 critical → URGENT
+        ctx = _make_ctx(requests=7)
+        result = await processor(ctx, _make_messages())
+        warning = _generated_warning_parts(result)[0].content
+        assert "URGENT" in warning
+        assert "3 remaining" in warning
+
+    @pytest.mark.anyio
+    async def test_context_warning_disabled_returns_none(self):
+        """Test _build_context_warning returns None when context_window not in warn_on."""
+        processor = LimitWarnerProcessor(
+            max_iterations=10,
+            max_context_tokens=100,
+            warn_on=["iterations"],
+            token_counter=lambda _: 99,
+        )
+        # Only iterations enabled, context_window disabled
+        ctx = _make_ctx(requests=8)
+        result = await processor(ctx, _make_messages())
+        warning = _generated_warning_parts(result)[0].content
+        assert "Context window" not in warning
+
+    @pytest.mark.anyio
+    async def test_empty_messages(self):
+        """Test processor handles empty message list."""
+        processor = LimitWarnerProcessor(max_iterations=10)
+        ctx = _make_ctx(requests=8)
+        result = await processor(ctx, [])
+        assert result == []
+
+    @pytest.mark.anyio
+    async def test_last_message_not_model_request(self):
+        """Test processor handles history ending with ModelResponse."""
+        processor = LimitWarnerProcessor(max_iterations=10)
+        messages: list[ModelMessage] = [
+            ModelRequest(parts=[UserPromptPart(content="Hi")]),
+            ModelResponse(parts=[TextPart(content="Hello")]),
+        ]
+        ctx = _make_ctx(requests=8)
+        result = await processor(ctx, messages)
+        # Warning can't be appended — last message is ModelResponse
+        assert result == messages
+
+    def test_factory_custom_token_counter(self):
+        """Test factory forwards custom token_counter."""
+
+        def counter(_: list[ModelMessage]) -> int:
+            return 42
+
+        processor = create_limit_warner_processor(
+            max_context_tokens=100,
+            token_counter=counter,
+        )
+        assert processor.token_counter is counter
