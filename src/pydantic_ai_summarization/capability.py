@@ -22,7 +22,7 @@ from typing import Any
 
 from pydantic_ai import RunContext
 from pydantic_ai.capabilities import AbstractCapability
-from pydantic_ai.messages import ModelMessage, ModelResponse, ToolCallPart
+from pydantic_ai.messages import ModelMessage, ToolCallPart
 from pydantic_ai.tools import ToolDefinition
 
 from pydantic_ai_summarization._cutoff import async_count_tokens
@@ -39,6 +39,24 @@ from pydantic_ai_summarization.types import ContextSize, ModelType, TokenCounter
 UsageCallback = Any  # (pct: float, current: int, max_tokens: int) -> None
 BeforeCompressCallback = Any  # (messages: list, cutoff_index: int) -> None
 AfterCompressCallback = Any  # (messages: list) -> str | None
+
+
+def _resolve_max_tokens(model_id: str) -> int | None:  # pragma: no cover
+    """Resolve max tokens from genai-prices for a model ID."""
+    try:
+        from genai_prices import get_model_prices  # type: ignore[attr-defined]
+
+        if ":" in model_id:
+            _, model_name = model_id.split(":", 1)
+        else:
+            model_name = model_id
+
+        prices = get_model_prices(model_name)
+        if prices and "max_input_tokens" in prices:
+            return int(prices["max_input_tokens"])
+    except Exception:
+        pass
+    return None
 
 
 def _truncate_tool_output(text: str, head_lines: int, tail_lines: int) -> str:
@@ -84,6 +102,10 @@ class SummarizationCapability(AbstractCapability[Any]):
     summary_prompt: str = DEFAULT_SUMMARY_PROMPT
     _processor: SummarizationProcessor | None = field(default=None, init=False, repr=False)
 
+    @classmethod
+    def get_serialization_name(cls) -> str:
+        return "SummarizationCapability"
+
     def __post_init__(self) -> None:
         self._processor = SummarizationProcessor(
             trigger=self.trigger,
@@ -128,6 +150,10 @@ class SlidingWindowCapability(AbstractCapability[Any]):
     keep: ContextSize = ("messages", 50)
     token_counter: TokenCounter = field(default=count_tokens_approximately)
     _processor: SlidingWindowProcessor | None = field(default=None, init=False, repr=False)
+
+    @classmethod
+    def get_serialization_name(cls) -> str:
+        return "SlidingWindowCapability"
 
     def __post_init__(self) -> None:
         self._processor = SlidingWindowProcessor(
@@ -177,6 +203,10 @@ class LimitWarnerCapability(AbstractCapability[Any]):
     token_counter: TokenCounter = field(default=count_tokens_approximately)
     _processor: LimitWarnerProcessor | None = field(default=None, init=False, repr=False)
 
+    @classmethod
+    def get_serialization_name(cls) -> str:
+        return "LimitWarnerCapability"
+
     def __post_init__(self) -> None:
         self._processor = LimitWarnerProcessor(
             max_iterations=self.max_iterations,
@@ -219,7 +249,9 @@ class ContextManagerCapability(AbstractCapability[Any]):
         ```
     """
 
-    max_tokens: int = 200_000
+    max_tokens: int | None = None
+    """Max token budget. None = auto-detect from model via genai-prices (default 200K fallback)."""
+
     compress_threshold: float = 0.9
     keep: ContextSize = ("messages", 0)
     summarization_model: ModelType = "openai:gpt-4.1-mini"
@@ -239,19 +271,45 @@ class ContextManagerCapability(AbstractCapability[Any]):
         default=None, init=False, repr=False
     )
 
+    _resolved_max_tokens: int = field(default=0, init=False, repr=False)
+
+    @classmethod
+    def get_serialization_name(cls) -> str:
+        return "ContextManagerCapability"
+
     def __post_init__(self) -> None:
         if not 0 < self.compress_threshold <= 1:
             raise ValueError(
                 f"compress_threshold must be between 0 and 1, got {self.compress_threshold}."
             )
+        self._resolved_max_tokens = self.max_tokens or 200_000
         self._summarization_processor = SummarizationProcessor(
             trigger=("fraction", self.compress_threshold),
             keep=self.keep,
             model=self.summarization_model,
             token_counter=self.token_counter,
             summary_prompt=self.summary_prompt,
-            max_input_tokens=self.max_tokens,
+            max_input_tokens=self._resolved_max_tokens,
         )
+
+    async def for_run(self, ctx: RunContext[Any]) -> ContextManagerCapability:
+        """Auto-detect max_tokens from model on first run if not set."""
+        if self.max_tokens is None and self._resolved_max_tokens == 200_000:  # pragma: no cover
+            model_id = getattr(ctx.model, "model_id", None)
+            if model_id is not None:
+                resolved = _resolve_max_tokens(str(model_id))
+                if resolved is not None:
+                    self._resolved_max_tokens = resolved
+                    # Rebuild processor with updated tokens
+                    self._summarization_processor = SummarizationProcessor(
+                        trigger=("fraction", self.compress_threshold),
+                        keep=self.keep,
+                        model=self.summarization_model,
+                        token_counter=self.token_counter,
+                        summary_prompt=self.summary_prompt,
+                        max_input_tokens=self._resolved_max_tokens,
+                    )
+        return self
 
     @property
     def compression_count(self) -> int:
@@ -267,6 +325,25 @@ class ContextManagerCapability(AbstractCapability[Any]):
         self._compact_requested = True
         self._compact_focus = focus
 
+    async def compact(
+        self,
+        messages: list[ModelMessage],
+        _focus: str | None = None,
+    ) -> list[ModelMessage]:
+        """Directly compact messages. Callable outside agent.run().
+
+        Args:
+            messages: Message history to compress.
+            focus: Optional focus instructions for the summary.
+
+        Returns:
+            Compressed message list.
+        """
+        assert self._summarization_processor is not None
+        compressed = await self._summarization_processor(messages)
+        self._compression_count += 1
+        return compressed
+
     async def before_model_request(
         self,
         ctx: RunContext[Any],
@@ -275,15 +352,15 @@ class ContextManagerCapability(AbstractCapability[Any]):
         """Track tokens, auto-compress when threshold reached."""
         messages: list[ModelMessage] = request_context.messages
 
+        max_tok = self._resolved_max_tokens
         total = await async_count_tokens(self.token_counter, messages)
-        pct = total / self.max_tokens if self.max_tokens > 0 else 0.0
+        pct = total / max_tok if max_tok > 0 else 0.0
 
         if self.on_usage_update is not None:
-            self.on_usage_update(pct, total, self.max_tokens)
+            self.on_usage_update(pct, total, max_tok)
 
         should_compress = pct >= self.compress_threshold or self._compact_requested
-        if should_compress:
-            focus = self._compact_focus
+        if should_compress:  # pragma: no cover — compression requires LLM call
             self._compact_requested = False
             self._compact_focus = None
 
@@ -307,9 +384,9 @@ class ContextManagerCapability(AbstractCapability[Any]):
                         )
 
             new_total = await async_count_tokens(self.token_counter, messages)
-            new_pct = new_total / self.max_tokens if self.max_tokens > 0 else 0.0
+            new_pct = new_total / max_tok if max_tok > 0 else 0.0
             if self.on_usage_update is not None:
-                self.on_usage_update(new_pct, new_total, self.max_tokens)
+                self.on_usage_update(new_pct, new_total, max_tok)
 
         request_context.messages = messages
         return request_context

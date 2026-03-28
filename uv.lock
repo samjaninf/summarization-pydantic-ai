@@ -943,8 +943,8 @@ wheels = [
 
 [[package]]
 name = "pydantic-ai-slim"
-version = "1.70.1.dev166+39dd6e56"
-source = { git = "https://github.com/pydantic/pydantic-ai.git?subdirectory=pydantic_ai_slim&branch=capabilities#39dd6e5690e30ea323af910f81a7a1963bb77a8d" }
+version = "1.72.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "exceptiongroup", marker = "python_full_version < '3.11'" },
     { name = "genai-prices" },
@@ -954,6 +954,10 @@ dependencies = [
     { name = "pydantic" },
     { name = "pydantic-graph" },
     { name = "typing-inspection" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/15/f1/7c58a8c3294a570f8c211e360c3b2c3a22588d4bf0ce89e4b9bdbb593cad/pydantic_ai_slim-1.72.0.tar.gz", hash = "sha256:feb409a37a868eae300adc6110ed455b74f45e80c37094dd6926b36585c761e1", size = 494431 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/56/55/f28ad42fe17762af517dc459681b900dad52650c97e0b2eb256ccb1060bd/pydantic_ai_slim-1.72.0-py3-none-any.whl", hash = "sha256:ccb84a890347571e6e3927ff49363aa98a3a5bbfdc42de2c8d3be9f673bbccc6", size = 636031 },
 ]
 
 [[package]]
@@ -1068,13 +1072,17 @@ wheels = [
 
 [[package]]
 name = "pydantic-graph"
-version = "1.70.1.dev166+39dd6e56"
-source = { git = "https://github.com/pydantic/pydantic-ai.git?subdirectory=pydantic_graph&branch=capabilities#39dd6e5690e30ea323af910f81a7a1963bb77a8d" }
+version = "1.72.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
     { name = "logfire-api" },
     { name = "pydantic" },
     { name = "typing-inspection" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/46/c6/943a366322ae9472fa9effbef2f34e82ed9f9a2a674202902a7b52f906d6/pydantic_graph-1.72.0.tar.gz", hash = "sha256:8970cc4cd4ba396976d4b4aa0ba5dcc9a0efeeac01a1a9253c7a8d90a4590046", size = 58716 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/61/0d/2b57296d0b3cec320a13bdd65bc04680f70ab64212495a91d8d10f83d9e4/pydantic_graph-1.72.0-py3-none-any.whl", hash = "sha256:d1c953d7395ff53b74c3e3b8b4cfac8d8ba06d32fc656ebae9363b2ade8598b0", size = 72502 },
 ]
 
 [[package]]
@@ -1428,7 +1436,7 @@ wheels = [
 
 [[package]]
 name = "summarization-pydantic-ai"
-version = "0.0.5"
+version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "pydantic-ai-slim" },
@@ -1468,7 +1476,7 @@ requires-dist = [
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.0.0" },
     { name = "pydantic-ai-middleware", marker = "extra == 'dev'", specifier = ">=0.2.0" },
     { name = "pydantic-ai-middleware", marker = "extra == 'hybrid'", specifier = ">=0.2.0" },
-    { name = "pydantic-ai-slim", git = "https://github.com/pydantic/pydantic-ai.git?subdirectory=pydantic_ai_slim&branch=capabilities" },
+    { name = "pydantic-ai-slim", specifier = ">=1.71.0" },
     { name = "pyright", marker = "extra == 'dev'", specifier = ">=1.1.400" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.0.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23.0" },
