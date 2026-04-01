@@ -263,6 +263,8 @@ class ContextManagerCapability(AbstractCapability[Any]):
     on_usage_update: UsageCallback | None = None
     on_before_compress: BeforeCompressCallback | None = None
     on_after_compress: AfterCompressCallback | None = None
+    include_compact_tool: bool = False
+    """When True, adds a ``compact_conversation`` tool so the agent can trigger compression."""
 
     _compact_requested: bool = field(default=False, init=False, repr=False)
     _compact_focus: str | None = field(default=None, init=False, repr=False)
@@ -291,6 +293,39 @@ class ContextManagerCapability(AbstractCapability[Any]):
             summary_prompt=self.summary_prompt,
             max_input_tokens=self._resolved_max_tokens,
         )
+
+    def get_toolset(self) -> Any:
+        """Return a toolset with the ``compact_conversation`` tool, or None."""
+        if not self.include_compact_tool:
+            return None
+
+        from pydantic_ai.toolsets import FunctionToolset
+
+        toolset: FunctionToolset[Any] = FunctionToolset(id="context-compact")
+        cap_ref = self  # capture for closure
+
+        @toolset.tool_plain(
+            description=(
+                "Compress the conversation history to free up context space. "
+                "Use when the conversation is getting long and you want to preserve "
+                "important context while reducing token usage. "
+                "Optionally provide a focus topic to prioritize in the summary."
+            ),
+        )
+        async def compact_conversation(focus: str | None = None) -> str:
+            """Compress conversation history.
+
+            Args:
+                focus: Optional topic to prioritize in the summary.
+            """
+            cap_ref.request_compact(focus=focus)
+            msg = "Conversation compaction requested."
+            if focus:
+                msg += f" Focus: {focus}"
+            msg += " It will be applied before the next model request."
+            return msg
+
+        return toolset
 
     async def for_run(self, ctx: RunContext[Any]) -> ContextManagerCapability:
         """Auto-detect max_tokens from model on first run if not set."""

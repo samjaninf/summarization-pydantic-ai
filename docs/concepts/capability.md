@@ -11,6 +11,7 @@ The recommended way to add context management to a Pydantic AI agent is via
 | Tool output truncation | `ContextManagerCapability` | No |
 | Auto-detect max_tokens | `ContextManagerCapability` | No |
 | `compact()` outside run | `ContextManagerCapability` | No |
+| Agent-triggered compaction | `ContextManagerCapability` (with `include_compact_tool=True`) | No |
 | AgentSpec YAML | Yes | No | No |
 
 ## Available Capabilities
@@ -26,8 +27,13 @@ cap = ContextManagerCapability(
     max_tokens=100_000,          # Auto-detected if None
     compress_threshold=0.9,      # Compress at 90% usage
     max_tool_output_tokens=5000, # Truncate large tool outputs
+    include_compact_tool=True,   # Add compact_conversation tool
 )
 ```
+
+When `include_compact_tool=True`, the agent gets a `compact_conversation(focus?)` tool
+that triggers compression on the next model request. The optional `focus` parameter
+guides the summary to prioritize specific topics.
 
 ### SummarizationCapability
 

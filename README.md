@@ -67,7 +67,7 @@ from pydantic_ai import Agent
 from pydantic_ai_summarization import ContextManagerCapability
 
 agent = Agent(
-    "openai:gpt-4.1",
+    "anthropic:claude-sonnet-4-6",
     capabilities=[ContextManagerCapability(max_tokens=100_000)],
 )
 
@@ -81,6 +81,21 @@ result = await agent.run("Hello!")
 - Truncates large tool outputs
 - Auto-detects context window size from the model
 - Preserves tool call/response pairs (never breaks them)
+
+### Agent-Triggered Compression
+
+Let the agent decide when to compress by enabling the `compact_conversation` tool:
+
+```python
+agent = Agent(
+    "anthropic:claude-sonnet-4-6",
+    capabilities=[ContextManagerCapability(
+        include_compact_tool=True,  # Adds compact_conversation(focus?) tool
+    )],
+)
+```
+
+The agent can call `compact_conversation(focus="preserve API design decisions")` to trigger compression with a focus topic. Compression is deferred to the next model request.
 
 ### Combine with Limit Warnings
 
@@ -170,11 +185,12 @@ from pydantic_ai import Agent
 from pydantic_ai_summarization import ContextManagerCapability
 
 agent = Agent(
-    "openai:gpt-4.1",
+    "anthropic:claude-sonnet-4-6",
     capabilities=[ContextManagerCapability(
         max_tokens=100_000,
         compress_threshold=0.9,
         max_tool_output_tokens=5000,
+        include_compact_tool=True,  # Agent gets a compact_conversation tool
     )],
 )
 ```
