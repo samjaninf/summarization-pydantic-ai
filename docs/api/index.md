@@ -42,4 +42,5 @@ from pydantic_ai_summarization import (
 | Tool Output Truncation | Yes | No | No | No |
 | Auto-detect max_tokens | Yes | No | No | No |
 | `compact()` method | Yes | No | No | No |
+| `compact_conversation` tool | `include_compact_tool` | No | No | No |
 | Token Tracking | Yes | No | No | Warnings |

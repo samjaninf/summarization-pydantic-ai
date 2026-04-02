@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2026-04-02
+
+### Added
+
+- **`compact_conversation` tool on `ContextManagerCapability`** — when `include_compact_tool=True`, the capability provides a `compact_conversation(focus?)` tool so agents can manually trigger context compression with an optional focus topic. Uses `request_compact()` internally — compression is deferred to the next model request.
+
+### Fixed
+
+- **`LimitWarnerProcessor` warning delivery** — warnings are injected as a trailing `UserPromptPart` in a new `ModelRequest` instead of appending a `SystemPromptPart` to the last turn, so models treat the limit notice like a distinct user message ([#14](https://github.com/vstorm-co/summarization-pydantic-ai/pull/14), by [@Gby56](https://github.com/Gby56))
+
 ## [0.1.2] - 2026-03-31
 
 ### Changed
