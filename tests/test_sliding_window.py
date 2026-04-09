@@ -538,11 +538,14 @@ class TestKeepHead:
         processor = SlidingWindowProcessor(
             trigger=("messages", 5),
             keep=("messages", 1),
-            keep_head=("messages", 1),
+            keep_head=("messages", 2),  # Would cut at index 2, splitting call_1
         )
         messages: list[ModelMessage] = [
             ModelRequest(parts=[UserPromptPart(content="Initial question")]),
-            ModelResponse(parts=[ToolCallPart(tool_name="search", args={}, tool_call_id="call_1")]),
+            ModelResponse(
+                parts=[ToolCallPart(tool_name="search", args={}, tool_call_id="call_1")]
+            ),
+            # keep_head=2 would cut here — but call_1 (index 1) is before, return (index 2) after
             ModelRequest(
                 parts=[ToolReturnPart(tool_name="search", content="Result", tool_call_id="call_1")]
             ),
@@ -552,23 +555,11 @@ class TestKeepHead:
             ModelRequest(parts=[UserPromptPart(content="Follow up 2")]),
         ]
         result = await processor(messages)
-        # keep_head=1 but cutting at index 1 would split tool pair (call_1),
-        # so head should expand to include the full tool pair (3 messages)
-        head = result[: len(result) - 1]
-        # The head should not split a tool call from its return
-        tool_call_ids_in_head = set()
-        for msg in head:
-            if isinstance(msg, ModelResponse):
-                for part in msg.parts:
-                    if isinstance(part, ToolCallPart) and part.tool_call_id:
-                        tool_call_ids_in_head.add(part.tool_call_id)
-        for msg in head:
-            if isinstance(msg, ModelRequest):
-                for part in msg.parts:
-                    if isinstance(part, ToolReturnPart) and part.tool_call_id:
-                        # If we have the call, we must have the return
-                        if part.tool_call_id in tool_call_ids_in_head:
-                            assert True  # Return is in head with its call
+        # Cutting at index 2 is unsafe (splits call_1 pair), so head expands to 3
+        # Result: head (3 messages) + tail (1 message) = 4
+        assert len(result) == 4
+        assert result[:3] == messages[:3]
+        assert result[3] == messages[-1]
 
     @pytest.mark.anyio
     async def test_keep_head_zero_messages(self):
@@ -599,3 +590,55 @@ class TestKeepHead:
         """Test create_sliding_window_processor without keep_head (default None)."""
         processor = create_sliding_window_processor()
         assert processor.keep_head is None
+
+    @pytest.mark.anyio
+    async def test_keep_head_fraction_based(self):
+        """Test keep_head with fraction-based configuration."""
+        processor = SlidingWindowProcessor(
+            trigger=("messages", 5),
+            keep=("messages", 2),
+            keep_head=("fraction", 0.5),
+            max_input_tokens=200,  # 50% = 100 tokens budget for head
+        )
+        messages: list[ModelMessage] = [
+            ModelRequest(parts=[UserPromptPart(content="x" * 200)]),  # 50 tokens
+            ModelRequest(parts=[UserPromptPart(content="y" * 200)]),  # 50 tokens -> 100 total
+            ModelRequest(parts=[UserPromptPart(content="z" * 200)]),  # would exceed 100
+            *[ModelRequest(parts=[UserPromptPart(content=f"msg {i}")]) for i in range(7)],
+        ]
+        result = await processor(messages)
+        # Should keep first 2 messages (~100 tokens) + last 2
+        assert len(result) == 4
+        assert result[:2] == messages[:2]
+        assert result[2:] == messages[-2:]
+
+    @pytest.mark.anyio
+    async def test_keep_head_token_all_fit(self):
+        """Test keep_head with token budget larger than all messages."""
+        processor = SlidingWindowProcessor(
+            trigger=("messages", 5),
+            keep=("messages", 2),
+            keep_head=("tokens", 999999),  # Huge budget — all messages fit
+        )
+        messages: list[ModelMessage] = [
+            ModelRequest(parts=[UserPromptPart(content=f"Message {i}")]) for i in range(6)
+        ]
+        result = await processor(messages)
+        # head covers all messages, effective_cutoff >= len(messages) → return as-is
+        assert result == messages
+
+    @pytest.mark.anyio
+    async def test_keep_head_covers_everything(self):
+        """Test when keep_head messages + tail overlap covers entire history."""
+        processor = SlidingWindowProcessor(
+            trigger=("messages", 5),
+            keep=("messages", 2),
+            keep_head=("messages", 5),  # Keep 5 from head of 6 total
+        )
+        messages: list[ModelMessage] = [
+            ModelRequest(parts=[UserPromptPart(content=f"Message {i}")]) for i in range(6)
+        ]
+        result = await processor(messages)
+        # head=5, cutoff for keep=2 from 6 = 4, effective_cutoff = max(4, 5) = 5
+        # tail = messages[5:] = 1 message, head = 5 messages → 6 total = all messages
+        assert result == messages

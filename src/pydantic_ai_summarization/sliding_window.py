@@ -182,7 +182,7 @@ class SlidingWindowProcessor:
             target = int(self.max_input_tokens * value)
             raw_count = self._find_head_token_count(messages, target)
         else:
-            return 0
+            return 0  # pragma: no cover
 
         # Adjust upward to avoid splitting tool call/response pairs
         while raw_count < len(messages) and not _is_safe(messages, raw_count):
