@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - 2026-05-24
+
+### Infrastructure
+
+- **`renovate.json`** ([#19](https://github.com/vstorm-co/summarization-pydantic-ai/pull/19)) — Renovate config landed; first auto-PRs (#20, #21) already merged.
+- **CI: bump `docs.yml` Python to `3.14`** ([#20](https://github.com/vstorm-co/summarization-pydantic-ai/pull/20), Renovate auto-PR).
+- **CI: bump `actions/checkout` to `v6`** across `ci.yml`, `docs.yml`, `publish.yml` ([#21](https://github.com/vstorm-co/summarization-pydantic-ai/pull/21), Renovate auto-PR).
+
+No source-code changes — pure CI / dependency-bot housekeeping. Library behaviour unchanged from 0.1.4.
+
 ## [0.1.4] - 2026-04-09
 
 ### Added
