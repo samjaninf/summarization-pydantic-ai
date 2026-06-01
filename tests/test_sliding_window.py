@@ -5,6 +5,7 @@ from pydantic_ai.messages import (
     ModelMessage,
     ModelRequest,
     ModelResponse,
+    SystemPromptPart,
     TextPart,
     ToolCallPart,
     ToolReturnPart,
@@ -15,7 +16,6 @@ from pydantic_ai_summarization import (
     SlidingWindowProcessor,
     create_sliding_window_processor,
 )
-from pydantic_ai.messages import SystemPromptPart
 
 
 class TestSlidingWindowProcessor:

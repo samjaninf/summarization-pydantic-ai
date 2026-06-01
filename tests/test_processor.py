@@ -12,6 +12,8 @@ from pydantic_ai.messages import (
     ToolReturnPart,
     UserPromptPart,
 )
+from pydantic_ai.messages import ModelResponse as _MR
+from pydantic_ai.models.function import AgentInfo, FunctionModel
 
 from pydantic_ai_summarization import (
     SummarizationProcessor,
@@ -19,8 +21,6 @@ from pydantic_ai_summarization import (
     create_summarization_processor,
     format_messages_for_summary,
 )
-from pydantic_ai.messages import ModelResponse as _MR
-from pydantic_ai.models.function import AgentInfo, FunctionModel
 
 
 class TestTokenCounting:
