@@ -15,11 +15,14 @@ from pydantic_ai_summarization.capability import (
     SlidingWindowCapability,
     SummarizationCapability,
 )
+from pydantic_ai import RunContext
+from pydantic_ai.messages import ToolCallPart
+from pydantic_ai.tools import ToolDefinition
+from pydantic_ai.messages import ModelRequest, UserPromptPart
 
 
 def _make_ctx() -> Any:
     """Create a minimal RunContext for testing."""
-    from pydantic_ai import RunContext
 
     return RunContext(deps=None, model=TestModel(), usage=RunUsage())
 
@@ -144,8 +147,6 @@ class TestContextManagerCapability:
     @pytest.mark.anyio
     async def test_tool_output_truncation(self):
         """after_tool_execute truncates large outputs."""
-        from pydantic_ai.messages import ToolCallPart
-        from pydantic_ai.tools import ToolDefinition
 
         cap = ContextManagerCapability(max_tool_output_tokens=10)  # 40 chars
         ctx = _make_ctx()
@@ -170,8 +171,6 @@ class TestContextManagerCapability:
     @pytest.mark.anyio
     async def test_no_truncation_when_disabled(self):
         """No truncation when max_tool_output_tokens is None."""
-        from pydantic_ai.messages import ToolCallPart
-        from pydantic_ai.tools import ToolDefinition
 
         cap = ContextManagerCapability(max_tool_output_tokens=None)
         ctx = _make_ctx()
@@ -219,7 +218,6 @@ class TestContextManagerCompact:
         """compact() processes messages and returns result."""
         cap = ContextManagerCapability(max_tokens=100_000)
         # With a very simple message list, processor won't compress
-        from pydantic_ai.messages import ModelRequest, UserPromptPart
 
         messages = [ModelRequest(parts=[UserPromptPart(content="Hello")])]
         result = await cap.compact(messages)
@@ -230,6 +228,23 @@ class TestContextManagerCompact:
         """compact() increments compression_count."""
         cap = ContextManagerCapability(max_tokens=100_000)
         assert cap.compression_count == 0
+
+    @pytest.mark.anyio
+    async def test_compact_forwards_focus_to_processor(self):
+        """compact() threads the focus topic through to the summarization processor."""
+        cap = ContextManagerCapability(max_tokens=100_000)
+        captured: dict[str, Any] = {}
+
+        async def fake_processor(messages: Any, focus: str | None = None) -> Any:
+            captured["focus"] = focus
+            return messages
+
+        cap._summarization_processor = fake_processor  # type: ignore[assignment]
+
+        messages = [ModelRequest(parts=[UserPromptPart(content="Hello")])]
+        await cap.compact(messages, focus="payment flow")
+        assert captured["focus"] == "payment flow"
+        assert cap.compression_count == 1
 
     @pytest.mark.anyio
     async def test_usage_callback_fires(self):

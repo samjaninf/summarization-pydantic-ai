@@ -15,6 +15,7 @@ from pydantic_ai_summarization import (
     SlidingWindowProcessor,
     create_sliding_window_processor,
 )
+from pydantic_ai.messages import SystemPromptPart
 
 
 class TestSlidingWindowProcessor:
@@ -441,7 +442,6 @@ class TestKeepHead:
     @pytest.mark.anyio
     async def test_keep_head_preserves_system_prompt(self):
         """Test that keep_head=1 preserves the first message (system prompt)."""
-        from pydantic_ai.messages import SystemPromptPart
 
         processor = SlidingWindowProcessor(
             trigger=("messages", 5),
