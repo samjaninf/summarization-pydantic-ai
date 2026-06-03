@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.7] - 2026-06-04
+
+### Fixed
+
+- **Async `token_counter` now works end-to-end through the compression/cutoff path** ([#28](https://github.com/vstorm-co/summarization-pydantic-ai/issues/28)). Async support added in [#7](https://github.com/vstorm-co/summarization-pydantic-ai/pull/7) only covered the gating check; once compression actually ran, `SummarizationProcessor.__call__` still called the counter synchronously — both for the trigger total and inside the binary-search cutoff — so an async counter (e.g. a provider `count_tokens` API for accurate PDF/image counting) crashed with `TypeError: '>=' not supported between instances of 'coroutine' and 'int'` and a `RuntimeWarning: coroutine '...' was never awaited`. `__call__` now routes both invocations through `async_count_tokens` / `async_determine_cutoff_index`, so async counters work all the way through summarization. The synchronous helpers are unchanged for sync counters.
+
 ## [0.1.6] - 2026-05-24
 
 ### Changed
