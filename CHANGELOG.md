@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.9] - 2026-06-22
+
+### Fixed
+
+- **`ContextManagerCapability.after_tool_execute` no longer stringifies a `ToolReturn`** ([#33](https://github.com/vstorm-co/summarization-pydantic-ai/pull/33)). Previously every non-`str` tool result was passed through `str(result)` before truncation. For a `ToolReturn` whose `content` carries `BinaryContent` (a tool returning a PDF/image/file), this was catastrophic: `str()` inlined the entire binary as a multi-MB `repr`, and `_truncate_tool_output` — which truncates by newline — left the blob unchanged because it had no newlines (`total_lines <= head + tail`). The giant string was then sent to the provider and rejected (e.g. Gemini `400 The input token count exceeds the maximum`). Small files slipped under the char limit, so the bug only surfaced with large binary tool results.
+
+  - `after_tool_execute` now only truncates plain `str` results and a `ToolReturn`'s textual `return_value`, leaving binary/structured `content` untouched.
+  - `_truncate_tool_output` gains an optional `max_chars` budget, used as a fallback when there are too few newlines to truncate by line (a single huge JSON blob or base64 string), so output is always bounded.
+
 ## [0.1.8] - 2026-06-17
 
 ### Changed
